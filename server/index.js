@@ -5,6 +5,7 @@ import cors from "cors";
 import { signup, login } from "./routes/auth.js";
 import { problemsTable, createProblem } from "./routes/problemsTable.js";
 import { problemDetails, createProblemDetails } from "./routes/problemDetails.js";
+import runRoute from "./routes/run.js";
 
 dotenv.config();
 const app = express();
@@ -26,15 +27,15 @@ app.listen(PORT, () => {
 
 // DATABASE MONGODB
 mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => {
     console.log("Connected to MongoDB");
   })
   .catch((error) => {
-    console.log(process.env.MONGO_URL );
-    
+    console.log(process.env.MONGO_URL);
+
     console.error("Error connecting to MongoDB:", error.message);
   });
 
@@ -49,3 +50,4 @@ app.post("/problemsTable", createProblem);
 // PROBLEM DETAILS
 app.get("/problem/:id", problemDetails);
 app.post("/problem", createProblemDetails);
+app.use("/run", runRoute);

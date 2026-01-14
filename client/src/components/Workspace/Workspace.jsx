@@ -48,78 +48,99 @@ function Workspace() {
     setCode(data);
   };
 
+  // const handleCompile = async () => {
+  //   setProcessing(true);
+  //   const formData = {
+  //     language_id: 63,
+  //     source_code: btoa(code),
+  //     stdin: btoa(details?.testcases[0].input),
+  //   };
+
+  //   const options = {
+  //     method: "POST",
+  //     url: process.env.REACT_APP_RAPID_API_URL,
+  //     params: { base64_encoded: "true", fields: "*" },
+  //     headers: {
+  //       "content-type": "application/json",
+  //       "Content-Type": "application/json",
+  //       "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
+  //       "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
+  //     },
+  //     data: formData,
+  //   };
+
+  //   try {
+  //     console.log("formData", formData);
+  //     console.log("options", options);
+  //     console.log("process.env.REACT_APP_RAPID_API_URL", process.env.REACT_APP_RAPID_API_URL);
+  //     console.log("process.env.REACT_APP_RAPID_API_HOST", process.env.REACT_APP_RAPID_API_HOST);
+  //     console.log("process.env.REACT_APP_RAPID_API_KEY", process.env.REACT_APP_RAPID_API_KEY);
+
+  //     const response = await axios.request(options);
+  //     const token = response.data.token;
+  //     checkStatus(token);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
   const handleCompile = async () => {
     setProcessing(true);
-    const formData = {
-      language_id: 63,
-      source_code: btoa(code),
-      stdin: btoa(details?.testcases[0].input),
-    };
-
-    const options = {
-      method: "POST",
-      url: process.env.REACT_APP_RAPID_API_URL,
-      params: { base64_encoded: "true", fields: "*" },
-      headers: {
-        "content-type": "application/json",
-        "Content-Type": "application/json",
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
-      },
-      data: formData,
-    };
-
     try {
-      console.log("formData", formData);
-      console.log("options", options);
-      console.log("process.env.REACT_APP_RAPID_API_URL", process.env.REACT_APP_RAPID_API_URL);
-      console.log("process.env.REACT_APP_RAPID_API_HOST", process.env.REACT_APP_RAPID_API_HOST);
-      console.log("process.env.REACT_APP_RAPID_API_KEY", process.env.REACT_APP_RAPID_API_KEY);
+      const res = await axios.post("http://localhost:6001/run", {
+        code,
+        language: "js",
+        testcases: details.testcases
+      });
 
-      const response = await axios.request(options);
-      const token = response.data.token;
-      checkStatus(token);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const checkStatus = async (token) => {
-    const options = {
-      method: "GET",
-      url: process.env.REACT_APP_RAPID_API_URL + "/" + token,
-      params: { base64_encoded: "true", fields: "*" },
-      headers: {
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
-      },
-    };
-
-    try {
-      const response = await axios.request(options);
-      const statusId = await response.data.status_id;
-      if (statusId === 1 || statusId === 2) {
-        setTimeout(() => {
-          checkStatus(token);
-        }, 2000);
-        return;
+      if (res.data.verdict === "Accepted") {
+        toast.success("All sample test cases passed");
       } else {
-        const output = atob(response.data.stdout);
-        const reqOutput = details.testcases[0].output;
-
-        if (output.trim() === reqOutput.trim()) {
-          toast.success("Congrats! TestCase Passesd");
-        } else {
-          toast.error("Oops! Output Didn't Matched");
-        }
-        setProcessing(false);
-        return;
+        toast.error(res.data.verdict);
       }
-    } catch (error) {
+    } catch {
+      toast.error("Execution failed");
+    } finally {
       setProcessing(false);
-      console.log(error);
     }
   };
+
+
+  // const checkStatus = async (token) => {
+  //   const options = {
+  //     method: "GET",
+  //     url: process.env.REACT_APP_RAPID_API_URL + "/" + token,
+  //     params: { base64_encoded: "true", fields: "*" },
+  //     headers: {
+  //       "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
+  //       "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
+  //     },
+  //   };
+
+  //   try {
+  //     const response = await axios.request(options);
+  //     const statusId = await response.data.status_id;
+  //     if (statusId === 1 || statusId === 2) {
+  //       setTimeout(() => {
+  //         checkStatus(token);
+  //       }, 2000);
+  //       return;
+  //     } else {
+  //       const output = atob(response.data.stdout);
+  //       const reqOutput = details.testcases[0].output;
+
+  //       if (output.trim() === reqOutput.trim()) {
+  //         toast.success("Congrats! TestCase Passesd");
+  //       } else {
+  //         toast.error("Oops! Output Didn't Matched");
+  //       }
+  //       setProcessing(false);
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     setProcessing(false);
+  //     console.log(error);
+  //   }
+  // };
 
   return (
     <Split className="split" minSize={0}>
